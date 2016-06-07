@@ -11,7 +11,7 @@ A small library for create customizable pie charts that can be zoomed and view d
 License
 ----
 
-MIT
+Apache License
 
 
 **Free Software**
