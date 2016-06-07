@@ -1,6 +1,6 @@
 # ZPieChart
 
-A small library for create customizable pie charts that can be zoomed and view details about your data.
+A small android library for create customizable pie charts that can be zoomed and view details about your data.
 
 [My personal webpage]
 
