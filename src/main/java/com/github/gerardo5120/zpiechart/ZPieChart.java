@@ -215,7 +215,7 @@ public class ZPieChart extends View {
         float hypotenuse = (float) Math.sqrt(Math.pow(viewPortInfo.getRadius(), 2) +
                 Math.pow(viewPortInfo.getRadius(), 2));
 
-        System.out.println("Hypotenuse: " + hypotenuse);
+        //System.out.println("Hypotenuse: " + hypotenuse);
 
         for (int i = 0; i < values.length; i++) {
             float val = values[i];
@@ -249,7 +249,7 @@ public class ZPieChart extends View {
             OnDrawSliceParams params = new OnDrawSliceParams(canvas, paintText, text, val);
 
 
-            System.out.println("Grades: " + startGrades);
+            //System.out.println("Grades: " + startGrades);
 
             mOnDrawChartHandler.onDrawSlice(params);
             //if (!mOnDrawChartHandler.onDrawSlice(params)) {
