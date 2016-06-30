@@ -6,12 +6,20 @@ import java.util.ArrayList;
  * Created by cruzgerardoyanezteran on 30/5/16.
  */
 public class GradedDial extends Dial {
-    private ArrayList<Grad> grads;
+    private ArrayList<Grad> mGrads;
+    private ArrayList<SingleMark> mSingleMaks;
 
-    GradedDial() {
+    public GradedDial() {
         super();
-        grads = new ArrayList<>();
+        mGrads = new ArrayList<>();
+        mSingleMaks = new ArrayList<>();
     }
 
-    public ArrayList<Grad> getGrads() { return grads; }
+    public ArrayList<SingleMark> getSingleMarks() {
+        return mSingleMaks;
+    }
+
+    public ArrayList<Grad> getGrads() {
+        return mGrads;
+    }
 }

@@ -6,7 +6,7 @@ import android.graphics.Color;
  * Created by cruzgerardoyanezteran on 30/5/16.
  */
 public class ValueDial extends Dial {
-    private float valSize = 30f;
+    private float valSize = 23f;
     private float valMargin = 10f;
     private int valColor = 0xFF00796B;
     private float value;

@@ -8,7 +8,7 @@ import java.util.HashSet;
  */
 public class Dial {
     private boolean showLine = true;
-    private float distance = 35f;
+    private float distance = 25f;
     private float width = 10f;
     private int color = 0xFF03A9F4;
 

@@ -1,24 +1,20 @@
 package com.github.gerardo5120.zpiechart;
 
 /**
- * Created by cruzgerardoyanezteran on 5/19/16.
+ * Created by cruzgerardoyanezteran on 28/6/16.
  */
-public class Grad implements DialElement {
-    private float mSpan;
-    private Mark mMark;
+public class SingleMark extends Mark implements DialElement {
+    private float mValue;
     private float maxScale = Float.MAX_VALUE;
     private float minScale = Float.MIN_VALUE;
 
-    public Grad(float span, Mark mark) {
-        this.mSpan = span;
-        this.mMark = mark;
+    public SingleMark(float mValue) {
+        this.mValue = mValue;
     }
 
-    public float getSpan() {
-        return mSpan;
+    public float getValue() {
+        return mValue;
     }
-
-    public Mark getMark() { return mMark; }
 
 
 
