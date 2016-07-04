@@ -1,5 +1,7 @@
 package com.github.gerardo5120.zpiechart;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 
@@ -11,17 +13,16 @@ public class OnDrawMarkValueParams extends OnDrawChartParams {
     private float y;
     private float grades;
     private float markValue;
-    private float markSpan;
+    private Bitmap icon;
 
     public OnDrawMarkValueParams(Canvas canvas, Paint paint, float x, float y,
-                                 float grades, float markValue, float markSpan) {
+                                 float grades, float markValue) {
         super(canvas, paint);
 
         this.x = x;
         this.y = y;
         this.grades = grades;
         this.markValue = markValue;
-        this.markSpan = markSpan;
     }
 
     public float getX() {
@@ -40,9 +41,7 @@ public class OnDrawMarkValueParams extends OnDrawChartParams {
         return markValue;
     }
 
-    public float getMarkSpan() {
-        return markSpan;
-    }
+    public void setIcon(Bitmap icon) { this.icon = icon; }
 
     public void setX(float x) {
         this.x = x;
@@ -60,7 +59,7 @@ public class OnDrawMarkValueParams extends OnDrawChartParams {
         this.markValue = markValue;
     }
 
-    public void setMarkSpan(float markSpan) {
-        this.markSpan = markSpan;
+    public Bitmap getIcon() {
+        return icon;
     }
 }

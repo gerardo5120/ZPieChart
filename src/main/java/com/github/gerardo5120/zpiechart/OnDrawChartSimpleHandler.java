@@ -23,4 +23,8 @@ public class OnDrawChartSimpleHandler implements OnDrawChartHandler {
     public boolean onDrawSlice(OnDrawChartParams params) {
         return false;
     }
+
+    @Override
+    public boolean onDrawMarkValue(OnDrawChartParams params) { return false; }
 }
+
