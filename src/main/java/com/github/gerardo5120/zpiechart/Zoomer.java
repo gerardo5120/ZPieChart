@@ -108,9 +108,9 @@ public class Zoomer {
 
         float t = tRTC * 1f / mAnimationDurationMillis;
 
-        System.out.println("Zoomer " + tRTC + " " + mStartZoom + " " + mAnimationDurationMillis
+        /*System.out.println("Zoomer " + tRTC + " " + mStartZoom + " " + mAnimationDurationMillis
             + " " + mInterpolator.getInterpolation(t)
-            + " " + mDiff);
+            + " " + mDiff);*/
 
         mCurrentZoom = mStartZoom + (mDiff * mInterpolator.getInterpolation(t));
         return true;

@@ -5,39 +5,42 @@ package com.github.gerardo5120.zpiechart;
  */
 public class SingleMark extends Mark implements DialElement {
     private float mValue;
-    private float maxScale = Float.MAX_VALUE;
-    private float minScale = Float.MIN_VALUE;
+    private float mMaxScale = Float.MAX_VALUE;
+    private float mMinScale = Float.MIN_VALUE;
+    private int mIcon;
 
     public SingleMark(float mValue) {
         this.mValue = mValue;
+        this.setShowValue(false);
+        //this.setValPosition(Position.INNER);
+        //this.setMarkPosition(Position.OUTER);
     }
 
     public float getValue() {
         return mValue;
     }
 
+    public int getIcon() { return mIcon; }
 
-
-
-
+    public void setIcon(int mIcon) { this.mIcon = mIcon; }
 
     @Override
     public float getMinScale() {
-        return minScale;
+        return mMinScale;
     }
 
     @Override
     public float getMaxScale() {
-        return maxScale;
+        return mMaxScale;
     }
 
     @Override
     public void setMaxScale(float maxScale) {
-        this.maxScale = maxScale;
+        this.mMaxScale = maxScale;
     }
 
     @Override
     public void setMinScale(float minScale) {
-        this.minScale = minScale;
+        this.mMinScale = minScale;
     }
 }

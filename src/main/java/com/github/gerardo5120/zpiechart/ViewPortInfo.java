@@ -46,20 +46,20 @@ public class ViewPortInfo {
                 " " +
                 centerDistRight);*/
 
-        System.out.println("Port Limit Top: " +
+        /*System.out.println("Port Limit Top: " +
                 limitY +
                 " "
                 + centerDistTop +
                 " " +
                 getPosY(0f) +
                 " " +
-                centerDistBottom);
+                centerDistBottom);*/
 
         //System.out.println("Return: " +
         //        (Math.abs(centerDistLeft) <= limitX && Math.abs(centerDistRight) <= limitX));
 
-        System.out.println("Return: " +
-                (Math.abs(centerDistTop) <= limitY && Math.abs(centerDistBottom) <= limitY));
+        //System.out.println("Return: " +
+        //        (Math.abs(centerDistTop) <= limitY && Math.abs(centerDistBottom) <= limitY));
 
 
 
@@ -75,7 +75,7 @@ public class ViewPortInfo {
         return mVisibleRect;
     }
 
-    protected float getRadius() {
+    protected float getComputedRadius() {
         mMatrix.getValues(mMatrixValues);
 
         return mRadius * mMatrixValues[Matrix.MSCALE_X];
@@ -93,54 +93,56 @@ public class ViewPortInfo {
         mMatrix.getValues(mMatrixValues);
 
         return (mVisibleRect.width() / 2) +
-                (((mRadius * mMatrixValues[Matrix.MSCALE_X]) * 2) * mMatrixValues[Matrix.MTRANS_X]);
+                ((((mVisibleRect.width() / 4) * mMatrixValues[Matrix.MSCALE_X]) * 2) *
+                        mMatrixValues[Matrix.MTRANS_X]);
     }
 
     protected float getPieCenterY() {
         mMatrix.getValues(mMatrixValues);
 
         return (mVisibleRect.height() / 2) +
-                (((mRadius * mMatrixValues[Matrix.MSCALE_Y]) * 2) * mMatrixValues[Matrix.MTRANS_Y]);
+                ((((mVisibleRect.height() / 4) * mMatrixValues[Matrix.MSCALE_Y]) * 2) *
+                        mMatrixValues[Matrix.MTRANS_Y]);
     }
 
     protected float getLeft() {
         return getPieCenterX() -
-                getRadius();
+                getComputedRadius();
     }
 
     protected float getTop() {
         return getPieCenterY() -
-                getRadius();
+                getComputedRadius();
     }
 
     protected float getRight() {
         return getLeft() +
-                (getRadius() * 2);
+                (getComputedRadius() * 2);
     }
 
     protected float getBottom() {
         return getTop() +
-                (getRadius() * 2);
+                (getComputedRadius() * 2);
     }
 
     protected float getPosX(float xCoordinate, float pieCenterX) {
-        return ((xCoordinate - (pieCenterX - getRadius())) * 0.5f) /
-                getRadius();
+        return ((xCoordinate - (pieCenterX - getComputedRadius())) * 0.5f) /
+                getComputedRadius();
     }
 
     protected float getPosX(float xCoordinate) {
-        return ((xCoordinate - (getPieCenterX() - getRadius())) * 0.5f) /
-                getRadius();
+        return ((xCoordinate - (getPieCenterX() - getComputedRadius())) * 0.5f) /
+                getComputedRadius();
     }
 
     protected float getPosY(float yCoordinate, float pieCenterY) {
-        return ((yCoordinate - (pieCenterY - getRadius())) * 0.5f) /
-                getRadius();
+        return ((yCoordinate - (pieCenterY - getComputedRadius())) * 0.5f) /
+                getComputedRadius();
     }
 
     protected float getPosY(float yCoordinate) {
-        return ((yCoordinate - (getPieCenterY() - getRadius())) * 0.5f) /
-                getRadius();
+        return ((yCoordinate - (getPieCenterY() - getComputedRadius())) * 0.5f) /
+                getComputedRadius();
     }
 
     protected float getScaleX() {
@@ -170,5 +172,13 @@ public class ViewPortInfo {
         mMatrix.reset();
         mMatrix.setScale(mMatrixValues[Matrix.MSCALE_X], mMatrixValues[Matrix.MSCALE_Y]);
         mMatrix.postTranslate(transX, transY);
+    }
+
+    protected float getRadius() {
+        return mRadius;
+    }
+
+    protected void setRadius(float radius) {
+        mRadius = radius;
     }
 }

@@ -8,6 +8,7 @@ public class Grad implements DialElement {
     private Mark mMark;
     private float maxScale = Float.MAX_VALUE;
     private float minScale = Float.MIN_VALUE;
+    private boolean startInZero = false;
 
     public Grad(float span, Mark mark) {
         this.mSpan = span;
@@ -20,10 +21,7 @@ public class Grad implements DialElement {
 
     public Mark getMark() { return mMark; }
 
-
-
-
-
+    public boolean isStartInZero() { return startInZero; }
 
     @Override
     public float getMinScale() {

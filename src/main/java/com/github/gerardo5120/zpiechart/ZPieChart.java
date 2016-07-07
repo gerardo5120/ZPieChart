@@ -1,6 +1,7 @@
 package com.github.gerardo5120.zpiechart;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -28,13 +29,13 @@ import java.util.HashSet;
  */
 public class ZPieChart extends View {
 
-    public enum PieChartComponent { GRADED_DIALS, VALUE_DIALS, LABELS };
-
+    public enum PieChartComponent { GRADED_DIALS, VALUE_DIALS, LABELS }
 
     private static final float CIRCLE_DEGREES = 360f;
     private final float GRADES_ADDED = -90f;
 
     private float[] mValues;
+    private int mSelectedIndex = -1;
 
     private boolean mShowGradedDials = true;
     private boolean mShowValueDials = true;
@@ -47,12 +48,16 @@ public class ZPieChart extends View {
             0xFFDCE775, 0xFF009688, 0xFF00897B,
             0xFF00796B };
 
+    private int mColorSelectedValue = 0xFF90CAF9;
+
     private HashSet<GradedDial> mGradedDials;
     private HashSet<ValueDial> mValueDials;
     private HashSet<Float> mSpansInDial;
+    private HashSet<Float> mSingleValuesInDial;
 
     private ViewPortInfo mViewPortInfo;
     private Zoomer mZoomer;
+    private Resources mResources;
 
     private boolean mScaling = false;
     private float mLastFocusX;
@@ -120,6 +125,7 @@ public class ZPieChart extends View {
         mOnDrawChartHandler = new OnDrawChartSimpleHandler();
 
         mSpansInDial = new HashSet<>();
+        mSingleValuesInDial = new HashSet<>();
         mZoomer = new Zoomer(context);
     }
 
@@ -148,6 +154,10 @@ public class ZPieChart extends View {
 
     public void setOnDrawChartHandler(OnDrawChartHandler mOnDrawChartHandler) {
         this.mOnDrawChartHandler = mOnDrawChartHandler;
+    }
+
+    public void setResources(Resources resources) {
+        mResources = resources;
     }
 
     public HashSet<ValueDial> getValueDials() {
@@ -213,6 +223,8 @@ public class ZPieChart extends View {
     public boolean onTouchEvent(MotionEvent event) {
         boolean retValScale = mScaleGestureDetector.onTouchEvent(event);
         boolean retValGesture = mGestureDetector.onTouchEvent(event);
+
+
 
         return retValScale || retValGesture || super.onTouchEvent(event);
     }
@@ -320,23 +332,60 @@ public class ZPieChart extends View {
         float total = getTotalValues();
         float startGrades = GRADES_ADDED;
 
-        float hypotenuse = (float) Math.sqrt(Math.pow(mViewPortInfo.getRadius(), 2) +
-                Math.pow(mViewPortInfo.getRadius(), 2));
-
         for (int i = 0; i < mValues.length; i++) {
             float val = mValues[i];
             float grades = (val * CIRCLE_DEGREES) / total;
 
-            mPaintSlices.setColor(mColorValues[i]);
 
-            canvas.drawArc(mViewPortInfo.getLeft(),
-                    mViewPortInfo.getTop(),
-                    mViewPortInfo.getRight(),
-                    mViewPortInfo.getBottom(),
-                    startGrades,
-                    grades,
-                    true,
-                    mPaintSlices);
+
+            if (mSelectedIndex != i) {
+                mPaintSlices.setColor(mColorValues[i]);
+
+
+                canvas.drawArc(mViewPortInfo.getLeft(),
+                        mViewPortInfo.getTop(),
+                        mViewPortInfo.getRight(),
+                        mViewPortInfo.getBottom(),
+                        startGrades,
+                        grades,
+                        true,
+                        mPaintSlices);
+
+                /*System.out.println("Center: " + mViewPortInfo.getPieCenterX() +
+                        " Rect. Width: " + mViewPortInfo.getRect().width() + " " +
+                        " Radius: " + mViewPortInfo.getRadius() + " " +
+                        " Scale: " + mViewPortInfo.getScaleX() + " " +
+                        " Trans: " + mViewPortInfo.getTransX());*/
+            }
+            else {
+                //mPaintSlices.setColor(mColorSelectedValue);
+                mPaintSlices.setColor(mColorValues[i]);
+
+                float originalRadius = mViewPortInfo.getRadius();
+
+                mViewPortInfo.setRadius(originalRadius + 10.0f);
+
+
+                canvas.drawArc(mViewPortInfo.getLeft(),
+                        mViewPortInfo.getTop(),
+                        mViewPortInfo.getRight(),
+                        mViewPortInfo.getBottom(),
+                        startGrades,
+                        grades,
+                        true,
+                        mPaintSlices);
+
+                /*System.out.println("Center Sel: " + mViewPortInfo.getPieCenterX() +
+                    " Rect. Width: " + mViewPortInfo.getRect().width() + " " +
+                    " Radius: " + mViewPortInfo.getRadius() + " " +
+                    " Scale: " + mViewPortInfo.getScaleX() + " " +
+                    " Trans: " + mViewPortInfo.getTransX());*/
+
+                mViewPortInfo.setRadius(originalRadius);
+            }
+
+
+
 
 
 
@@ -347,8 +396,6 @@ public class ZPieChart extends View {
             paintText.setColor(0xFF880E4F);
             paintText.setTextSize(24);
             paintText.setAntiAlias(true);
-
-            float height = (grades * hypotenuse) / 90;
 
             String text = String.valueOf(val);
 
@@ -369,35 +416,35 @@ public class ZPieChart extends View {
 
 
                     float leftText = mViewPortInfo.getPieCenterX() +
-                            ((mViewPortInfo.getRadius() / 2) - (textLength / 2));
+                            ((mViewPortInfo.getComputedRadius() / 2) - (textLength / 2));
                     float topText = mViewPortInfo.getPieCenterY() + 12;
 
-                    float pivotPointX = mViewPortInfo.getPieCenterX() + (mViewPortInfo.getRadius() / 2);
+                    float pivotPointX = mViewPortInfo.getPieCenterX() + (mViewPortInfo.getComputedRadius() / 2);
                     float pivotPointY = mViewPortInfo.getPieCenterY();
 
-                /*if (textLength > height) {
-                    leftText = mViewPortInfo.getPieCenterX() + mViewPortInfo.getRadius();
-                    pivotPointX = mViewPortInfo.getPieCenterX() + mViewPortInfo.getRadius() +
-                            (mViewPortInfo.getRadius() / 2);
-                }*/
+                    /*if (textLength > height) {
+                        leftText = mViewPortInfo.getPieCenterX() + mViewPortInfo.getComputedRadius();
+                        pivotPointX = mViewPortInfo.getPieCenterX() + mViewPortInfo.getComputedRadius() +
+                                (mViewPortInfo.getComputedRadius() / 2);
+                    }*/
 
 
                     float outTextX = mViewPortInfo.getPieCenterX() +
                             ((float) (Math.cos(Math.toRadians(startGrades + (grades / 2))) *
-                                    (mViewPortInfo.getRadius() + 90)));
+                                    (mViewPortInfo.getComputedRadius() + 90)));
 
                     float outTextY = mViewPortInfo.getPieCenterY() +
                             (float) (Math.sin(Math.toRadians(startGrades + (grades / 2))) *
-                                    (mViewPortInfo.getRadius() + 90));
+                                    (mViewPortInfo.getComputedRadius() + 90));
 
 
                     float initLineX = mViewPortInfo.getPieCenterX() +
                             ((float) (Math.cos(Math.toRadians(startGrades + (grades / 2))) *
-                                    mViewPortInfo.getRadius()));
+                                    mViewPortInfo.getComputedRadius()));
 
                     float initLineY = mViewPortInfo.getPieCenterY() +
                             (float) (Math.sin(Math.toRadians(startGrades + (grades / 2))) *
-                                    mViewPortInfo.getRadius());
+                                    mViewPortInfo.getComputedRadius());
 
 
                     getTextCoords(textLength, 24, outTextX, outTextY, startGrades + (grades / 2));
@@ -414,19 +461,31 @@ public class ZPieChart extends View {
 
 
 
-                /*
-                Rect r1 = new Rect((int) outTextX, (int) outTextY, (int) (outTextX + 5), (int) (outTextY + 5));
-                Paint p1 = new Paint();
-                p1.setColor(Color.BLACK);
-                p1.setStyle(Paint.Style.FILL);
-                canvas.drawRect(r1, p1);
 
-                System.out.println("Grades: " + (startGrades + (grades / 2)) +
-                        " Ex X: " + outTextX + " Y: " + outTextY +
-                        " Center X: " + mViewPortInfo.getPieCenterX() + " Y: " + mViewPortInfo.getPieCenterY() +
-                        " Cos: " + Math.cos(Math.toRadians(startGrades + (grades / 2))) +
-                        " Radius: " + mViewPortInfo.getRadius());
-                */
+                    /*Rect r1 = new Rect((int) initLineX, (int) initLineY,
+                            (int) (initLineX + 5), (int) (initLineY + 5));
+                    Paint p1 = new Paint();
+                    p1.setColor(Color.BLACK);
+                    p1.setStyle(Paint.Style.FILL);
+                    canvas.drawRect(r1, p1);*/
+
+                    /*System.out.println("Grades: " + (startGrades + (grades / 2)) +
+                            " Ex X: " + outTextX + " Y: " + outTextY +
+                            " Center X: " + mViewPortInfo.getPieCenterX() + " Y: " + mViewPortInfo.getPieCenterY() +
+                            " Cos: " + Math.cos(Math.toRadians(startGrades + (grades / 2))) +
+                            " Radius: " + mViewPortInfo.getComputedRadius());*/
+
+
+
+                    //if (angle < 0) {
+                    //    angle += 360;
+                    //}
+
+
+                    /*System.out.println("Init line X: " + initLineX +
+                            " Grades: " + (startGrades + (grades / 2)) +
+                            " Angle: " + angle); */
+
 
 
                     canvas.rotate(startGrades + (grades / 2),
@@ -467,6 +526,15 @@ public class ZPieChart extends View {
 
 
         mSpansInDial.clear();
+        mSingleValuesInDial.clear();
+
+        for (SingleMark singleMark: dial.getSingleMarks()) {
+            if ((singleMark.getMaxScale() > mViewPortInfo.getScaleX())
+                    && (mViewPortInfo.getScaleX() > singleMark.getMinScale())) {
+                drawSingleMark(singleMark, dial, canvas);
+                mSingleValuesInDial.add(singleMark.getValue());
+            }
+        }
 
         for (Grad grad: dial.getGrads()) {
             if ((grad.getMaxScale() > mViewPortInfo.getScaleX())
@@ -475,18 +543,11 @@ public class ZPieChart extends View {
                 mSpansInDial.add(grad.getSpan());
             }
         }
-
-        for (SingleMark singleMark: dial.getSingleMarks()) {
-            if ((singleMark.getMaxScale() > mViewPortInfo.getScaleX())
-                    && (mViewPortInfo.getScaleX() > singleMark.getMinScale())) {
-                drawSingleMark(singleMark, dial, canvas);
-            }
-        }
     }
 
     private void drawSingleMark(SingleMark mark, Dial dial, Canvas canvas) {
         float markLeft = mViewPortInfo.getPieCenterX() +
-                mViewPortInfo.getRadius() + dial.getDistance();
+                mViewPortInfo.getComputedRadius() + dial.getDistance();
 
         if (mark.getPosition() == Mark.Position.INNER)
             markLeft -= mark.getWidth();
@@ -504,6 +565,8 @@ public class ZPieChart extends View {
 
         mPaintMark.setColor(mark.getColor());
 
+        canvas.save(Canvas.MATRIX_SAVE_FLAG);
+
         canvas.rotate(degreesMark,
                 mViewPortInfo.getPieCenterX(),
                 mViewPortInfo.getPieCenterY());
@@ -516,85 +579,115 @@ public class ZPieChart extends View {
         canvas.drawRect(rectMark,
                 mPaintMark);
 
-        canvas.rotate(-1 * degreesMark,
-                mViewPortInfo.getPieCenterX(),
-                mViewPortInfo.getPieCenterY());
+        canvas.restore();
 
-        if (mark.showValue() == false)
-            return;
 
 
 
         float markSpanSum = mark.getValue();
-        float valueLeft = markLeft + mark.getWidth() + mark.getValMargin();
-        float valueTop = markTop + (mark.getValSize() / 2);
-        float pivotPointMarkX;
-        float pivotPointMarkY;
-
-        mPaintMarkVal.setColor(mark.getColor());
-        mPaintMarkVal.setTextSize(mark.getValSize());
-        //mPaintCanvas.
-
-        canvas.rotate(degreesMark,
-                mViewPortInfo.getPieCenterX(),
-                mViewPortInfo.getPieCenterY());
-
-        if (mark.getValPosition() == Mark.Position.INNER)
-            valueLeft = markLeft - mark.getValMargin() - getTextWidth(markSpanSum, mPaintMarkVal);
-
-        pivotPointMarkX = valueLeft + (getTextWidth(markSpanSum, mPaintMarkVal) / 2);
-        pivotPointMarkY = valueTop;
-
-        canvas.rotate(-1 * (degreesMark),
-                pivotPointMarkX,
-                pivotPointMarkY);
 
 
+        if (mark.showValue() == true) {
+            float valueLeft = markLeft + mark.getWidth() + mark.getValMargin();
+            float valueTop = (markTop + (mark.getHeight() / 2)) +
+                    (mark.getValSize() / 4);
+            float pivotPointMarkX;
+            float pivotPointMarkY;
+
+            mPaintMarkVal.setColor(mark.getColor());
+            mPaintMarkVal.setTextSize(mark.getValSize());
 
 
-        OnDrawMarkValueParams params = new OnDrawMarkValueParams(canvas, mPaintMarkVal,
-                valueLeft, valueTop, degreesMark, mark.getValue());
+            if (mark.getValPosition() == Mark.Position.INNER)
+                valueLeft = markLeft - mark.getValMargin() - getTextWidth(markSpanSum, mPaintMarkVal);
 
-        mOnDrawChartHandler.onDrawMarkValue(params);
-
-        //if (!mOnDrawChartHandler.onDrawMarkValue(params)) {
-            canvas.drawText(String.valueOf(markSpanSum),
-                    valueLeft,
-                    valueTop,
-                    mPaintMarkVal);
-        //}
-
-        if (params.getIcon() != null) {
-            System.out.println("Drawing Image");
-
-            Paint paint = new Paint();
-
-            //paint.setColor(Color.RED);
+            pivotPointMarkX = valueLeft + (getTextWidth(markSpanSum, mPaintMarkVal) / 2);
+            pivotPointMarkY = markTop + (mark.getHeight() / 2);
 
 
-            //canvas.drawBitmap(params.getIcon(), valueLeft, valueTop, paint);
+            canvas.save(Canvas.MATRIX_SAVE_FLAG);
 
-            //canvas.setBitmap(params.getIcon());
+            canvas.rotate(degreesMark,
+                    mViewPortInfo.getPieCenterX(),
+                    mViewPortInfo.getPieCenterY());
 
-            //canvas.drawPicture();
+            canvas.rotate(-1 * (degreesMark),
+                    pivotPointMarkX,
+                    pivotPointMarkY);
+
+            OnDrawMarkValueParams params = new OnDrawMarkValueParams(canvas, mPaintMarkVal,
+                    valueLeft, valueTop, degreesMark, mark.getValue());
+
+            if (!mOnDrawChartHandler.onDrawMarkValue(params) || true) {
+                if (!valAlreadyInDial(markSpanSum))
+                    canvas.drawText(String.valueOf(markSpanSum),
+                            valueLeft,
+                            valueTop,
+                            mPaintMarkVal);
+            }
+
+            canvas.restore();
         }
 
 
 
-        canvas.rotate(degreesMark,
-                pivotPointMarkX,
-                pivotPointMarkY);
 
-        canvas.rotate(-1 * (degreesMark),
-                mViewPortInfo.getPieCenterX(),
-                mViewPortInfo.getPieCenterY());
+
+        if (mark.getIcon() != 0) {
+            canvas.save(Canvas.MATRIX_SAVE_FLAG);
+
+            Bitmap bitmap = BitmapFactory.
+                    decodeResource(mResources, mark.getIcon());
+
+            float imageLeft = markRight;
+            float imageTop = (markTop + (mark.getHeight() / 2)) - (bitmap.getHeight() / 2);
+
+
+            if (mark.getValPosition() == Mark.Position.OUTER
+                && mark.showValue() == true) {
+                imageLeft += getTextWidth(markSpanSum, mPaintMarkVal) + mark.getValMargin();
+            }
+
+            if (mark.getValPosition() == Mark.Position.INNER) {
+                imageLeft = markLeft - bitmap.getWidth();
+
+                if (mark.showValue() == true) {
+                    imageLeft -= getTextWidth(markSpanSum, mPaintMarkVal) + mark.getValMargin();
+                }
+            }
+
+
+            float pivotPointImageX = imageLeft + (bitmap.getWidth() / 2);
+            float pivotPointImageY = imageTop + (bitmap.getHeight() / 2);
+
+
+            canvas.rotate(degreesMark,
+                    mViewPortInfo.getPieCenterX(),
+                    mViewPortInfo.getPieCenterY());
+
+            canvas.rotate(-1 * (degreesMark),
+                    pivotPointImageX,
+                    pivotPointImageY);
+
+
+            Paint paint = new Paint();
+            paint.setColor(Color.BLACK);
+
+            // TODO: Change for most appropiate exception handling
+            // if (bitmap == null) System.out.println("Error");
+
+            canvas.drawBitmap(bitmap, imageLeft, imageTop, paint);
+
+            canvas.restore();
+        }
+
     }
 
     private void drawGrad(Grad grad, Dial dial, Canvas canvas) {
         float markSpanSum = 0.0f;
         float startGrades = GRADES_ADDED;
         float markLeft = mViewPortInfo.getPieCenterX() +
-                mViewPortInfo.getRadius() + dial.getDistance();
+                mViewPortInfo.getComputedRadius() + dial.getDistance();
 
         if (grad.getMark().getPosition() == Mark.Position.INNER)
             markLeft -= grad.getMark().getWidth();
@@ -606,30 +699,50 @@ public class ZPieChart extends View {
         float degreesMarksSpan = (grad.getSpan() * CIRCLE_DEGREES) / getTotalValues();
         mPaintMark.setColor(grad.getMark().getColor());
 
-        while (startGrades < (CIRCLE_DEGREES + GRADES_ADDED)) {
+        final float totalDegrees = (CIRCLE_DEGREES + GRADES_ADDED);
 
-            canvas.rotate(startGrades,
-                    mViewPortInfo.getPieCenterX(),
-                    mViewPortInfo.getPieCenterY());
+        while (startGrades <= totalDegrees) {
 
-            Rect rectMark = new Rect((int) markLeft,
-                    (int) markTop,
-                    (int) markRight,
-                    (int) markBottom);
+            boolean isLastValue = startGrades == totalDegrees;
+            boolean drawLastValue = isLastValue && !grad.isStartInZero();
 
-            OnDrawChartParams params = new OnDrawMarkParams(canvas, mPaintMark, startGrades
-                    , rectMark, markSpanSum);
+            boolean isZeroValue = markSpanSum == 0;
+            boolean drawZeroValue = isZeroValue && grad.isStartInZero();
 
-            canvas.drawRect(rectMark,
-                    mPaintMark);
 
-            canvas.rotate(-1 * (startGrades),
-                    mViewPortInfo.getPieCenterX(),
-                    mViewPortInfo.getPieCenterY());
+            if (!valAlreadyInDial(markSpanSum)
+                    // Must draw zero value
+                    && !(isZeroValue && !drawZeroValue)
+                    // Must draw last value
+                    && !(isLastValue && !drawLastValue)) {
+
+                canvas.save(Canvas.MATRIX_SAVE_FLAG);
+
+                canvas.rotate(startGrades,
+                        mViewPortInfo.getPieCenterX(),
+                        mViewPortInfo.getPieCenterY());
+
+
+                Rect rectMark = new Rect((int) markLeft,
+                        (int) markTop,
+                        (int) markRight,
+                        (int) markBottom);
+
+                OnDrawChartParams params = new OnDrawMarkParams(canvas, mPaintMark, startGrades
+                        , rectMark, markSpanSum);
+
+                canvas.drawRect(rectMark,
+                        mPaintMark);
+
+                canvas.restore();
+            }
 
             markSpanSum += grad.getSpan();
             startGrades += degreesMarksSpan;
         }
+
+
+
 
         if (grad.getMark().showValue() == false)
             return;
@@ -645,51 +758,54 @@ public class ZPieChart extends View {
         mPaintMarkVal.setColor(grad.getMark().getValColor());
         mPaintMarkVal.setTextSize(grad.getMark().getValSize());
 
-        System.out.println("Mark Width: " + grad.getMark().getWidth() +
-            " Height: " + grad.getMark().getHeight());
 
 
-        while (startGrades < (CIRCLE_DEGREES + GRADES_ADDED)) {
-            canvas.save(Canvas.MATRIX_SAVE_FLAG);
-
-            canvas.rotate(startGrades,
-                    mViewPortInfo.getPieCenterX(),
-                    mViewPortInfo.getPieCenterY());
-
-            if (grad.getMark().getValPosition() == Mark.Position.INNER)
-                valueLeft = markLeft - grad.getMark().getValMargin() - getTextWidth(markSpanSum, mPaintMarkVal);
-
-            System.out.println("Width: " + getTextWidth(markSpanSum, mPaintMarkVal));
-
-            pivotPointMarkX = valueLeft + (getTextWidth(markSpanSum, mPaintMarkVal) / 2);
-            pivotPointMarkY = valueTop;
-
-            canvas.rotate(-1 * (startGrades),
-                    pivotPointMarkX,
-                    markTop);
 
 
-            if (!valAlreadyInDial(markSpanSum)) {
+        while (startGrades <= totalDegrees) {
+
+            boolean isLastValue = startGrades == totalDegrees;
+            boolean drawLastValue = isLastValue && !grad.isStartInZero();
+
+            boolean isZeroValue = markSpanSum == 0;
+            boolean drawZeroValue = isZeroValue && grad.isStartInZero();
+
+            if (!valAlreadyInDial(markSpanSum)
+                    // Must draw zero value
+                    && !(isZeroValue && !drawZeroValue)
+                    // Must draw last value
+                    && !(isLastValue && !drawLastValue)) {
+
+                canvas.save(Canvas.MATRIX_SAVE_FLAG);
+
+                canvas.rotate(startGrades,
+                        mViewPortInfo.getPieCenterX(),
+                        mViewPortInfo.getPieCenterY());
+
+                if (grad.getMark().getValPosition() == Mark.Position.INNER)
+                    valueLeft = markLeft - grad.getMark().getValMargin() - getTextWidth(markSpanSum, mPaintMarkVal);
+
+                pivotPointMarkX = valueLeft + (getTextWidth(markSpanSum, mPaintMarkVal) / 2);
+                pivotPointMarkY = markTop + (grad.getMark().getHeight() / 2);
+
+                canvas.rotate(-1 * (startGrades),
+                        pivotPointMarkX,
+                        pivotPointMarkY);
+
+
+                //System.out.println("Val in dial: " + valAlreadyInDial(markSpanSum));
 
                 OnDrawChartParams params = new OnDrawMarkValueParams(canvas, mPaintMarkVal,
                         valueLeft, valueTop, startGrades, markSpanSum);
 
-                    canvas.drawText(String.valueOf(markSpanSum),
-                            valueLeft,
-                            valueTop,
-                            mPaintMarkVal);
+                canvas.drawText(String.valueOf(markSpanSum),
+                        valueLeft,
+                        valueTop,
+                        mPaintMarkVal);
+
+
+                canvas.restore();
             }
-
-
-            canvas.restore();
-
-            /*canvas.rotate(startGrades,
-                    pivotPointMarkX,
-                    pivotPointMarkY);
-
-            canvas.rotate(-1 * (startGrades),
-                    mViewPortInfo.getPieCenterX(),
-                    mViewPortInfo.getPieCenterY()); */
 
             markSpanSum += grad.getSpan();
             startGrades += degreesMarksSpan;
@@ -796,15 +912,27 @@ public class ZPieChart extends View {
         }
         else if (grades >= 90 && grades < 270
                 && txtL < 0) {
+
+            float excL = txtL;
+
             txtL += -(txtL);
             txtR = txtL + txtWidth;
 
             float distX = mViewPortInfo.getPieCenterX() - txtR;
-            float distY = (float) (Math.sqrt(Math.pow(mViewPortInfo.getRadius(), 2) - distX));
+            float distY = (float) (Math.sqrt(Math.pow(mViewPortInfo.getComputedRadius(), 2) -
+                    distX));
             float cordY = 0;
 
+            System.out.println("Hello");
+
+
+
+
             if (grades < 180) {
-                cordY = mViewPortInfo.getPieCenterY() + distY;
+                //cordY = mViewPortInfo.getPieCenterY() + distY;
+                cordY = txtT +  Math.abs(excL);
+
+                System.out.println("Dist Y: " + distY);
             }
             else if (grades >= 180) {
                 cordY = mViewPortInfo.getPieCenterY() - distY;
@@ -816,6 +944,11 @@ public class ZPieChart extends View {
     }
 
     private boolean valAlreadyInDial(float val) {
+        for (Float v: mSingleValuesInDial) {
+            if (v == val)
+                return true;
+        }
+
         for (Float span: mSpansInDial) {
             if ((val % span) == 0)
                 return true;
@@ -868,6 +1001,45 @@ public class ZPieChart extends View {
             lastTouchY = e.getY();
 
             return true;
+        }
+
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+            mSelectedIndex = getIndexValue(e.getX(), e.getY());
+
+            ViewCompat.postInvalidateOnAnimation(ZPieChart.this);
+
+            return super.onSingleTapConfirmed(e);
+        }
+
+        private int getIndexValue(float x, float y) {
+            float grades = (float) -((Math.
+                    toDegrees(Math.atan2(x - mViewPortInfo.getPieCenterX()
+                            , y - mViewPortInfo.getPieCenterY()))) + GRADES_ADDED);
+
+            float distance = (float) (Math.sqrt(Math.pow(x - mViewPortInfo.getPieCenterX(), 2) +
+                    Math.pow(y - mViewPortInfo.getPieCenterY(), 2)));
+
+
+            if (distance > mViewPortInfo.getComputedRadius())
+                return -1;
+
+
+            float total = getTotalValues();
+            float beginAngle = GRADES_ADDED;
+
+            for (int i = 0; i <= mValues.length; i++) {
+                float val = mValues[i];
+                float endAngle = beginAngle + ((val * CIRCLE_DEGREES) / total);
+
+                if (grades >= beginAngle && grades <= endAngle) {
+                    return i;
+                }
+
+                beginAngle = endAngle;
+            }
+
+            return -1;
         }
 
         @Override

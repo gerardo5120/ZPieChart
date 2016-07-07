@@ -16,7 +16,7 @@ public class Mark {
     private float markWidth = 15f;
     private float markHeight = 3f;
     private float valSize = 20f;
-    private boolean showValues = true;
+    private boolean showValue = true;
 
     public Mark() {
         // NOPE
@@ -34,9 +34,9 @@ public class Mark {
         this.markWidth = markWidth;
     }
 
-    public boolean showValue() { return showValues; }
+    public boolean showValue() { return showValue; }
 
-    public void setShowValues(boolean showValues) { this.showValues = showValues; }
+    public void setShowValue(boolean showValue) { this.showValue = showValue; }
 
     public Position getPosition() { return markPosition; }
 
@@ -62,4 +62,11 @@ public class Mark {
         return valMargin;
     }
 
+    public void setValPosition(Position valPosition) {
+        this.valPosition = valPosition;
+    }
+
+    public void setMarkPosition(Position markPosition) {
+        this.markPosition = markPosition;
+    }
 }
